@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose:*)",
+      "Bash(docker exec:*)",
+      "Bash(curl:*)",
+      "Bash(cut:*)",
+      "Bash(docker volume rm:*)",
+      "Bash(docker volume:*)",
+      "Bash(for i in {1..3})",
+      "Bash(do)",
+      "Bash(for j in {1..100})",
+      "Bash(do echo \"msg-$i-$j\")",
+      "Bash(done)"
+    ]
+  }
+}
