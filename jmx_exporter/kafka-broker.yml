@@ -1,0 +1,71 @@
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+whitelistObjectNames:
+  - kafka.server:type=BrokerTopicMetrics,name=*
+  - kafka.server:type=ReplicaManager,name=*
+  - kafka.server:type=KafkaRequestHandlerPool,name=*
+  - kafka.network:type=RequestMetrics,name=*,request=*
+  - kafka.network:type=Processor,name=*,networkProcessor=*
+  - kafka.controller:type=KafkaController,name=*
+  - kafka.server:type=ReplicaFetcherManager,name=*,clientId=*
+  - kafka.server:type=DelayedOperationPurgatory,name=*,delayedOperation=*
+  - kafka.log:type=LogFlushStats,name=*
+  - kafka.log:type=Log,name=*,topic=*,partition=*
+  - java.lang:type=OperatingSystem
+  - java.lang:type=Memory
+  - java.lang:type=GarbageCollector,name=*
+  - java.lang:type=Threading
+
+rules:
+  - pattern: kafka.server<type=(.+), name=(.+), clientId=(.+), topic=(.+), partition=(.*)><>Value
+    name: kafka_server_$1_$2
+    type: GAUGE
+    labels:
+      clientId: "$3"
+      topic: "$4"
+      partition: "$5"
+  
+  - pattern: kafka.server<type=(.+), name=(.+), clientId=(.+), brokerHost=(.+), brokerPort=(.+)><>Value
+    name: kafka_server_$1_$2
+    type: GAUGE
+    labels:
+      clientId: "$3"
+      broker: "$4:$5"
+  
+  - pattern: kafka.server<type=(.+), name=(.+)><>Value
+    name: kafka_server_$1_$2
+    type: GAUGE
+  
+  - pattern: kafka.network<type=(.+), name=(.+), request=(.+)><>Value
+    name: kafka_network_$1_$2
+    type: GAUGE
+    labels:
+      request: "$3"
+  
+  - pattern: kafka.network<type=(.+), name=(.+)><>Value
+    name: kafka_network_$1_$2
+    type: GAUGE
+  
+  - pattern: kafka.controller<type=(.+), name=(.+)><>Value
+    name: kafka_controller_$1_$2
+    type: GAUGE
+  
+  - pattern: kafka.log<type=(.+), name=(.+), topic=(.+), partition=(.+)><>Value
+    name: kafka_log_$1_$2
+    type: GAUGE
+    labels:
+      topic: "$3"
+      partition: "$4"
+  
+  - pattern: kafka.log<type=(.+), name=(.+)><>Value
+    name: kafka_log_$1_$2
+    type: GAUGE
+  
+  - pattern: java.lang<type=(.+), name=(.+)><>(.+)
+    name: java_lang_$1_$2_$3
+    type: GAUGE
+  
+  - pattern: java.lang<type=(.+)><>(.+)
+    name: java_lang_$1_$2
+    type: GAUGE
