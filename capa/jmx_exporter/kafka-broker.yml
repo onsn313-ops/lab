@@ -3,6 +3,7 @@ lowercaseOutputLabelNames: true
 
 whitelistObjectNames:
   - kafka.server:type=BrokerTopicMetrics,name=*
+  - kafka.server:type=BrokerTopicMetrics,name=*,topic=*
   - kafka.server:type=ReplicaManager,name=*
   - kafka.server:type=KafkaRequestHandlerPool,name=*
   - kafka.network:type=RequestMetrics,name=*,request=*
@@ -10,14 +11,42 @@ whitelistObjectNames:
   - kafka.controller:type=KafkaController,name=*
   - kafka.server:type=ReplicaFetcherManager,name=*,clientId=*
   - kafka.server:type=DelayedOperationPurgatory,name=*,delayedOperation=*
+  - kafka.server:type=FetcherLagMetrics,name=*,clientId=*,topic=*,partition=*
   - kafka.log:type=LogFlushStats,name=*
   - kafka.log:type=Log,name=*,topic=*,partition=*
+  - kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec
+  - kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec,topic=*
+  - kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec
+  - kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec,topic=*  
+  - kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec
+  - kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec,topic=*
   - java.lang:type=OperatingSystem
   - java.lang:type=Memory
   - java.lang:type=GarbageCollector,name=*
   - java.lang:type=Threading
 
 rules:
+  # 토픽별 BrokerTopicMetrics (가장 먼저 매칭되어야 함)
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(MessagesInPerSec|BytesInPerSec|BytesOutPerSec), topic=(.+)><>Count
+    name: kafka_server_BrokerTopicMetrics_$1_Count
+    type: COUNTER
+    labels:
+      topic: "$2"
+  
+  # 전체 합계 BrokerTopicMetrics (topic 레이블 없음)
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(MessagesInPerSec|BytesInPerSec|BytesOutPerSec)><>Count
+    name: kafka_server_BrokerTopicMetrics_$1_Total_Count
+    type: COUNTER
+
+  # Replica Fetcher Lag (복제 지연)
+  - pattern: kafka.server<type=FetcherLagMetrics, name=ConsumerLag, clientId=(.+), topic=(.+), partition=(.+)><>Value
+    name: kafka_server_FetcherLagMetrics_ConsumerLag
+    type: GAUGE
+    labels:
+      clientId: "$1"
+      topic: "$2"
+      partition: "$3"
+
   - pattern: kafka.server<type=(.+), name=(.+), clientId=(.+), topic=(.+), partition=(.*)><>Value
     name: kafka_server_$1_$2
     type: GAUGE
